@@ -8,5 +8,6 @@ public class Recipe
     [MaxLength(100)] public string RecipeName { get; set; } = string.Empty;
     [MaxLength(1000)] public string? RecipeDescription { get; set; }
     [MaxLength(100)] public string? RecipeCategory { get; set; }
-    ICollection<Product> Ingredients { get; set; } = new List<Product>();
+    public ICollection<InstructionStep> InstructionSteps { get; set; } = new List<InstructionStep>();
+    public ICollection<RecipeIngredient> Ingredients { get; set; } = new List<RecipeIngredient>();
 }

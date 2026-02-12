@@ -61,7 +61,9 @@ public static class ProductEndpoints
             IProductRepository repo) =>
         {
             var deleted = await repo.DeleteProductAsync(id);
-            return deleted ? Results.NoContent() : Results.NotFound();
+            return deleted
+                ? Results.Ok(new { message = "Product deleted successfully" })
+                : Results.NotFound(new { message = "Product not found" });
         });
 
         return group;

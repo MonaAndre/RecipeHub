@@ -10,7 +10,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+                .UseSnakeCaseNamingConvention());
+        
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IRecipeRepository, RecipeRepository>();
         services.AddOpenApi();
