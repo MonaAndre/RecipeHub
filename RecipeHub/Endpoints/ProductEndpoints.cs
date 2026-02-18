@@ -15,36 +15,14 @@ public static class ProductEndpoints
             ProductDtoRequest dto,
             IProductRepository repo) =>
         {
-            var product = new Product
-            {
-                ProductNamn = dto.Name,
-                Category = dto.Category
-            };
-
-            await repo.CreateProductAsync(product);
-
-            var response = new ProductDtoResponse
-            {
-                Name = product.ProductNamn,
-                Category = product.Category,
-                Id = product.ProductId
-            };
-
+            var response = await repo.CreateProductAsync(dto);
             return Results.Created($"/products/{response.Id}", response);
         });
 
-        group.MapGet("/", async (IProductRepository repo) =>
+        group.MapGet("/", async (Domain.RecipeHub recipeHub) =>
         {
-            var products = await repo.GetAllProductsAsync();
-
-            var response = products.Select(p => new ProductDtoResponse
-            {
-                Id = p.ProductId,
-                Name = p.ProductNamn,
-                Category = p.Category!
-            });
-
-            return Results.Ok(response);
+            var products = await recipeHub.GetAllProductsAsync();
+            return Results.Ok(products);
         });
 
         group.MapPut("/{id:int}", async (

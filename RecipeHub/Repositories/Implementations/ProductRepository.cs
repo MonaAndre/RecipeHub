@@ -15,30 +15,64 @@ public class ProductRepository : IProductRepository
         _context = constex;
     }
 
-    public async Task<List<Product>> GetAllProductsAsync()
+    public async Task<List<ProductDtoResponse>> GetAllProductsAsync()
     {
-        return await _context.Products.ToListAsync();
+        return await _context.Products
+            .Select(p => new ProductDtoResponse
+            {
+                Id = p.ProductId,
+                Name = p.ProductNamn,
+                Category = p.Category!
+            })
+            .ToListAsync();
     }
 
-    public async Task<Product?> GetProductAsync(int id)
+    public async Task<ProductDtoResponse?> GetProductAsync(int id)
     {
-        var product = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == id);
+        var product = await _context.Products
+            .Where(p => p.ProductId == id)
+            .Select(p => new ProductDtoResponse
+            {
+                Id = p.ProductId,
+                Name = p.ProductNamn,
+                Category = p.Category!
+            }).FirstOrDefaultAsync();
         return product;
     }
 
-    public async Task<bool> CreateProductAsync(Product product)
+    public async Task<ProductDtoResponse> CreateProductAsync(ProductDtoRequest dto)
     {
-        await _context.Products.AddAsync(product);
-        return await _context.SaveChangesAsync() > 0;
+        var productToCreate = new Product
+        {
+            ProductNamn = dto.Name,
+            Category = dto.Category
+        };
+        await _context.Products.AddAsync(productToCreate);
+        await _context.SaveChangesAsync();
+        var newProduct = new ProductDtoResponse
+        {
+            Id = productToCreate.ProductId,
+            Name = productToCreate.ProductNamn,
+        };
+        return newProduct;
     }
 
-    public async Task<Product> UpdateProductAsync(int id, ProductDtoRequest dto)
+    public async Task<ProductDtoResponse?> UpdateProductAsync(int id, ProductDtoRequest dto)
     {
         var product = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == id);
         product!.ProductNamn = dto.Name;
         product.Category = dto.Category;
         await _context.SaveChangesAsync();
-        return product;
+        var newProduct = await _context.Products
+            .Where(p => p.ProductId == id)
+            .Select(p => new ProductDtoResponse
+            {
+                Id = p.ProductId,
+                Name = p.ProductNamn,
+                Category = p.Category!
+            })
+            .FirstOrDefaultAsync();
+        return newProduct;
     }
 
     public async Task<bool> DeleteProductAsync(int id)

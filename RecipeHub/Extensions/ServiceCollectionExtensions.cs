@@ -14,7 +14,8 @@ public static class ServiceCollectionExtensions
                 .UseSnakeCaseNamingConvention());
         
         services.AddScoped<IProductRepository, ProductRepository>();
-        services.AddScoped<IRecipeRepository, RecipeRepository>();
+        services.AddScoped<IRecipeRepository, RecipeRepository>(); 
+        services.AddScoped<Domain.RecipeHub>();
         services.AddOpenApi();
         return services;
     }

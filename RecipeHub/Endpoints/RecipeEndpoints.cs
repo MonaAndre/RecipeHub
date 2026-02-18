@@ -9,17 +9,26 @@ public static class RecipeEndpoints
     {
         var group = app.MapGroup("/recipes")
             .WithTags("Recipes");
-        group.MapGet("/", async (IRecipeRepository repository) =>
+          
+        group.MapGet("/all-recipes", async (IRecipeRepository repository) =>
         {
             var recipes = await repository.GetAllAsync();
             return Results.Ok(recipes.Count>0?recipes:"No recipes");
+        });
+        app.MapGet("/recipes", async (IRecipeRepository repository,[AsParameters]
+            RecipesByPageDtoRequest request) =>
+        {
+
+            var response = await repository.GetRecipesAsync(request);
+
+            return Results.Ok(response);
         });
         group.MapGet("/{id}", async (IRecipeRepository repository, int id) =>
         {
             var recipe = await repository.GetByIdAsync(id);
             return Results.Ok(recipe is null?"No recipe":recipe);
         });
-        group.MapPost("/", async (
+        group.MapPost("/create-recipe", async (
             CreateRecipeDtoRequest request,
             IRecipeRepository repository) =>
         {

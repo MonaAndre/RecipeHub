@@ -1,9 +1,8 @@
 using RecipeHub.DTOs.ProductDTOs;
-using RecipeHub.Models;
 
-namespace RecipeHub.Repositories.Interfaces;
+namespace RecipeHub.Services.Interfaces;
 
-public interface IProductRepository
+public interface IProductService
 {
     Task<List<ProductDtoResponse>> GetAllProductsAsync();
     Task<ProductDtoResponse?> GetProductAsync(int id);

@@ -19,9 +19,43 @@ public class RecipeRepository : IRecipeRepository
     {
         return await _context.Recipes.Select(r => new RecipeDtoResponse
         {
+            Id = r.RecipeId,
             RecipeName = r.RecipeName,
             RecipeCategory = r.RecipeCategory!
         }).ToListAsync();
+    }
+    
+    public async Task<RecipesByPageDtoResponse> GetRecipesAsync(RecipesByPageDtoRequest request)
+    {
+        var page = Math.Max(request.Page, 1);
+        var pageSize = Math.Clamp(request.PageSize, 1, 100);
+
+        var query = _context.Recipes.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+            query = query.Where(r => r.RecipeName.Contains(request.Search));
+
+        var totalCount = await query.CountAsync();
+
+        var recipes = await query
+            .OrderBy(r => r.RecipeId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(r => new RecipeDtoResponse
+            {
+                Id = r.RecipeId,
+                RecipeName = r.RecipeName,
+                RecipeCategory = r.RecipeCategory!
+            })
+            .ToListAsync();
+        var response = new RecipesByPageDtoResponse
+        {
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            Recipes = recipes
+        };
+        return response;
     }
 
     public async Task<RecipeDetailsDtoResponse?> GetByIdAsync(int id)

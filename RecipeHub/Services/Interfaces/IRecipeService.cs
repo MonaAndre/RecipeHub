@@ -1,9 +1,8 @@
 using RecipeHub.DTOs.RecipeDTOs;
-using RecipeHub.Models;
 
-namespace RecipeHub.Repositories.Interfaces;
+namespace RecipeHub.Services.Interfaces;
 
-public interface IRecipeRepository
+public interface IRecipeService
 {
     Task<List<RecipeDtoResponse>> GetAllAsync();
     Task<RecipesByPageDtoResponse> GetRecipesAsync(RecipesByPageDtoRequest request);
