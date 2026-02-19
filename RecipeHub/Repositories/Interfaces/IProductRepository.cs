@@ -6,8 +6,9 @@ namespace RecipeHub.Repositories.Interfaces;
 public interface IProductRepository
 {
     Task<List<ProductDtoResponse>> GetAllProductsAsync();
-    Task<ProductDtoResponse?> GetProductAsync(int id);
     Task<ProductDtoResponse> CreateProductAsync(ProductDtoRequest dto);
     Task<ProductDtoResponse?> UpdateProductAsync(int id, ProductDtoRequest dto);
     Task<bool> DeleteProductAsync(int id);
+    Task<bool> ValidateProductAsync(int id);
+    Task<bool> ValidateIfProductExistAsync(string name);
 }

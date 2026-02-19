@@ -1,22 +1,38 @@
+using RecipeHub.Common;
 using RecipeHub.DTOs.ProductDTOs;
 using RecipeHub.Models;
 using RecipeHub.Repositories.Interfaces;
+using RecipeHub.Services.Interfaces;
 
 namespace RecipeHub.Domain;
 
-public class RecipeHub
+public class RecipeHub : IRecipeHub
 {
-    private readonly IProductRepository  _productRepository;
-    private readonly IRecipeRepository _recipeRepository;
+    private readonly IProductService _productService;
 
-    public RecipeHub(IProductRepository  productRepository, IRecipeRepository recipeRepository)
+    public RecipeHub(IProductService productService)
     {
-        _productRepository = productRepository;
-        _recipeRepository = recipeRepository;
+        _productService = productService;
     }
 
-    public async Task<List<ProductDtoResponse>> GetAllProductsAsync()
+    public async Task<ServiceResponse<List<ProductDtoResponse>>> GetAllProductsAsync()
     {
-        return await _productRepository.GetAllProductsAsync();
+        return await _productService.GetAllProductsAsync();
     }
+
+    public async Task<ServiceResponse<ProductDtoResponse>> CreateProductAsync(ProductDtoRequest dto)
+    {
+        return await _productService.CreateProductAsync(dto);
+    }
+
+    public async Task<ServiceResponse<ProductDtoResponse>> UpdateProductAsync(int id, ProductDtoRequest dto)
+    {
+        return await _productService.UpdateProductAsync(id, dto);
+    }
+
+    public async Task<ServiceResponse<bool>> DeleteProductAsync(int id)
+    {
+        return await _productService.DeleteProductAsync(id);
+    }
+
 }

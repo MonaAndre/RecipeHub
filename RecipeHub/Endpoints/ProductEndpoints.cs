@@ -1,6 +1,6 @@
+using RecipeHub.Common;
+using RecipeHub.Domain;
 using RecipeHub.DTOs.ProductDTOs;
-using RecipeHub.Models;
-using RecipeHub.Repositories.Interfaces;
 
 namespace RecipeHub.Endpoints;
 
@@ -11,37 +11,49 @@ public static class ProductEndpoints
         var group = app.MapGroup("/products")
             .WithTags("Products");
 
-        group.MapPost("/", async (
-            ProductDtoRequest dto,
-            IProductRepository repo) =>
+        group.MapGet("/", async (IRecipeHub recipeHub) =>
         {
-            var response = await repo.CreateProductAsync(dto);
-            return Results.Created($"/products/{response.Id}", response);
+            var result = await recipeHub.GetAllProductsAsync();
+            return result.ToHttpResult();
         });
 
-        group.MapGet("/", async (Domain.RecipeHub recipeHub) =>
+        group.MapPost("/", async (
+            ProductDtoRequest dto,
+            IRecipeHub recipeHub) =>
         {
-            var products = await recipeHub.GetAllProductsAsync();
-            return Results.Ok(products);
+            var result = await recipeHub.CreateProductAsync(dto);
+            return result.ToHttpResult();
+        }).AddEndpointFilter(async (context, next) =>
+        {
+            var dto = context.Arguments.OfType<ProductDtoRequest>().FirstOrDefault();
+
+            if (dto is null)
+                return Results.BadRequest("Invalid request body");
+
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return Results.BadRequest("ProductName is required");
+
+            if (dto.Name.Length > 100)
+                return Results.BadRequest("ProductName is too long");
+
+            return await next(context);
         });
 
         group.MapPut("/{id:int}", async (
             int id,
             ProductDtoRequest dto,
-            IProductRepository repo) =>
+            IRecipeHub recipeHub) =>
         {
-            var updatedProduct = await repo.UpdateProductAsync(id, dto);
-            return Results.Ok(updatedProduct);
+            var result = await recipeHub.UpdateProductAsync(id, dto);
+            return result.ToHttpResult();
         });
 
         group.MapDelete("/{id:int}", async (
             int id,
-            IProductRepository repo) =>
+            IRecipeHub recipeHub) =>
         {
-            var deleted = await repo.DeleteProductAsync(id);
-            return deleted
-                ? Results.Ok(new { message = "Product deleted successfully" })
-                : Results.NotFound(new { message = "Product not found" });
+            var result = await recipeHub.DeleteProductAsync(id);
+            return result.ToHttpResult();
         });
 
         return group;

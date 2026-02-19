@@ -82,4 +82,16 @@ public class ProductRepository : IProductRepository
         _context.Products.Remove(productToDelete);
         return await _context.SaveChangesAsync() > 0;
     }
+
+    public async Task<bool> ValidateProductAsync(int id)
+    {
+        return await _context.Products.AnyAsync(p => p.ProductId == id);
+    }
+
+    public async Task<bool> ValidateIfProductExistAsync(string name)
+    {
+        return await _context.Products
+            .AnyAsync(p =>
+                EF.Functions.ILike(p.ProductNamn, name));
+    }
 }
