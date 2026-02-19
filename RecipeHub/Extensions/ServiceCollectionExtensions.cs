@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IRecipeRepository, RecipeRepository>();
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IRecipeService, RecipeService>();
         services.AddScoped<IRecipeHub, Domain.RecipeHub>();
         services.AddOpenApi();
         return services;

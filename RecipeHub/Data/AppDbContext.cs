@@ -29,7 +29,7 @@ public class AppDbContext : DbContext
             recipe.HasKey(r => r.RecipeId);
             recipe.Property(r => r.RecipeId).ValueGeneratedOnAdd();
             recipe.Property(r => r.RecipeName).IsRequired().HasMaxLength(100);
-            recipe.Property(r => r.RecipeDescription).IsRequired().HasMaxLength(1000);
+            recipe.Property(r => r.RecipeDescription).HasMaxLength(1000);
             recipe.Property(r => r.RecipeCategory).HasMaxLength(100);
         });
         modelBuilder.Entity<RecipeIngredient>(recipeIngredient =>

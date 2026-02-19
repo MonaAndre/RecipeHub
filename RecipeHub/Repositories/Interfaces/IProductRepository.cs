@@ -11,4 +11,5 @@ public interface IProductRepository
     Task<bool> DeleteProductAsync(int id);
     Task<bool> ValidateProductAsync(int id);
     Task<bool> ValidateIfProductExistAsync(string name);
+    Task<HashSet<int>> GetExistingProductIdsAsync(IEnumerable<int> productIds);
 }

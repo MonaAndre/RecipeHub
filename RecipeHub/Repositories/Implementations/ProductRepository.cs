@@ -94,4 +94,11 @@ public class ProductRepository : IProductRepository
             .AnyAsync(p =>
                 EF.Functions.ILike(p.ProductNamn, name));
     }
+    public async Task<HashSet<int>> GetExistingProductIdsAsync(IEnumerable<int> productIds)
+    {
+        return await _context.Products
+            .Where(p => productIds.Contains(p.ProductId))
+            .Select(p => p.ProductId)
+            .ToHashSetAsync();
+    }
 }

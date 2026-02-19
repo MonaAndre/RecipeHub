@@ -8,7 +8,8 @@ public interface IRecipeRepository
     Task<List<RecipeDtoResponse>> GetAllAsync();
     Task<RecipesByPageDtoResponse> GetRecipesAsync(RecipesByPageDtoRequest request);
     Task<RecipeDetailsDtoResponse?> GetByIdAsync(int id);
-    Task<RecipeDetailsDtoResponse?> CreateRecipeAsync(CreateRecipeDtoRequest dto);
-    Task<RecipeDetailsDtoResponse?> UpdateRecipeAsync(int id,UpdateRecipeDtoRequest dto);
+    Task<int> CreateRecipeAsync(CreateRecipeDtoRequest dto);
+    Task<bool> UpdateRecipeAsync(int id,UpdateRecipeDtoRequest dto);
     Task<bool> DeleteRecipeAsync(int id);
+    Task<bool> ValidateRecipe(int id);
 }

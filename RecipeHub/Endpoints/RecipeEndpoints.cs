@@ -1,3 +1,5 @@
+using RecipeHub.Common;
+using RecipeHub.Domain;
 using RecipeHub.DTOs.RecipeDTOs;
 using RecipeHub.Repositories.Interfaces;
 
@@ -9,58 +11,73 @@ public static class RecipeEndpoints
     {
         var group = app.MapGroup("/recipes")
             .WithTags("Recipes");
-          
-        group.MapGet("/all-recipes", async (IRecipeRepository repository) =>
-        {
-            var recipes = await repository.GetAllAsync();
-            return Results.Ok(recipes.Count>0?recipes:"No recipes");
-        });
-        app.MapGet("/recipes", async (IRecipeRepository repository,[AsParameters]
-            RecipesByPageDtoRequest request) =>
-        {
 
-            var response = await repository.GetRecipesAsync(request);
-
-            return Results.Ok(response);
-        });
-        group.MapGet("/{id}", async (IRecipeRepository repository, int id) =>
+        group.MapGet("/all-recipes", async (IRecipeHub recipeHub) =>
         {
-            var recipe = await repository.GetByIdAsync(id);
-            return Results.Ok(recipe is null?"No recipe":recipe);
+            var result = await recipeHub.GetAllRecipesAsync();
+            return result.ToHttpResult();
+        });
+        app.MapGet("/paged-recipes", async (IRecipeHub recipeHub, [AsParameters] RecipesByPageDtoRequest dto) =>
+        {
+            var response = await recipeHub.GetRecipesAsync(dto);
+            return response.ToHttpResult();
+        }).AddEndpointFilter(async (context, next) =>
+        {
+            var dto = context.Arguments.OfType<RecipesByPageDtoRequest>().FirstOrDefault();
+
+            if (dto is null)
+                return Results.BadRequest("Missing query parameters");
+
+            if (dto?.Page is null || dto?.PageSize is null)
+                return Results.BadRequest("Query parameters 'page' and 'pageSize' are required.");
+
+            if (dto.Page < 1)
+                return Results.BadRequest("Page must be >= 1.");
+
+            if (dto.PageSize < 1)
+                return Results.BadRequest("PageSize must be >= 1.");
+
+            if (dto.PageSize > 100)
+                return Results.BadRequest("PageSize must be <= 100.");
+
+            return await next(context);
+        });
+        group.MapGet("/{id:int}", async (IRecipeHub recipeHub, int id) =>
+        {
+            var result = await recipeHub.GetRecipeByIdAsync(id);
+            return result.ToHttpResult();
+        }).AddEndpointFilter(async (context, next) =>
+        {
+            var id = context.Arguments.OfType<int>().First();
+
+            if (id <= 0)
+            {
+                return Results.BadRequest("Id must be greater than 0");
+            }
+
+            return await next(context);
         });
         group.MapPost("/create-recipe", async (
             CreateRecipeDtoRequest request,
-            IRecipeRepository repository) =>
+            IRecipeHub recipeHub) =>
         {
-            var created = await repository.CreateRecipeAsync(request);
-
-            return created is null
-                ? Results.BadRequest()
-                : Results.Created($"/recipes/{created.RecipeId}", created);
+            var result = await recipeHub.CreateRecipeAsync(request);
+            return result.ToHttpResult();
         });
         group.MapPut("/update-recipe/{id}", async (int id,
             UpdateRecipeDtoRequest request,
-            IRecipeRepository repository) =>
+            IRecipeHub recipeHub) =>
         {
-            var updated = await repository.UpdateRecipeAsync(id, request);
-
-            return updated is null
-                ? Results.BadRequest()
-                : Results.Created($"/recipes/{updated.RecipeId}", updated);
+            var result = await recipeHub.UpdateRecipeAsync(id, request);
+            return result.ToHttpResult();
         });
         group.MapDelete("/{id:int}", async (
             int id,
-            IRecipeRepository repository) =>
+            IRecipeHub recipeHub) =>
         {
-            var deleted = await repository.DeleteRecipeAsync(id);
-            return deleted
-                ? Results.Ok(new { message = "recipe deleted successfully" })
-                : Results.NotFound(new { message = "Recipe not found" });
+            var result = await recipeHub.DeleteRecipeAsync(id);
+            return result.ToHttpResult();
         });
-        // group.MapPost("/", async (IRecipeRepository repository) =>
-        // {
-        //     
-        // })
         return group;
     }
 }
