@@ -1,5 +1,3 @@
-using RecipeHub.Models;
-
 namespace RecipeHub.DTOs.RecipeDTOs;
 
 public class RecipeDetailsDtoResponse
@@ -13,6 +11,7 @@ public class RecipeDetailsDtoResponse
 
     public List<InstructionStepDto> InstructionSteps { get; set; } = new();
     public List<RecipeIngredientDto> Ingredients { get; set; } = new();
+    public List<CommentDto> Comments { get; set; } = new();
 }
 
 public class InstructionStepDto
@@ -28,4 +27,12 @@ public class RecipeIngredientDto
     public string ProductName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public string Unit { get; set; } = string.Empty;
+}
+
+public class CommentDto
+{
+    public int CommentId { get; set; }
+    public string Text { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 }

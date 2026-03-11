@@ -19,15 +19,16 @@ public class RecipeRepository : IRecipeRepository
     {
         return await _context.Recipes.Select(r => new RecipeDtoResponse
         {
-            Id = r.RecipeId,
-            RecipeName = r.RecipeName,
-            RecipeCategory = r.RecipeCategory!
+            Id             = r.RecipeId,
+            RecipeName     = r.RecipeName,
+            RecipeCategory = r.RecipeCategory!,
+            UserName       = r.User.UserName 
         }).ToListAsync();
     }
 
     public async Task<RecipesByPageDtoResponse> GetRecipesAsync(RecipesByPageDtoRequest request)
     {
-        var page = Math.Max(request.Page ?? 1, 1);
+        var page     = Math.Max(request.Page ?? 1, 1);
         var pageSize = Math.Clamp(request.PageSize ?? 5, 1, 100);
 
         var query = _context.Recipes.AsNoTracking();
@@ -43,65 +44,73 @@ public class RecipeRepository : IRecipeRepository
             .Take(pageSize)
             .Select(r => new RecipeDtoResponse
             {
-                Id = r.RecipeId,
-                RecipeName = r.RecipeName,
-                RecipeCategory = r.RecipeCategory!
+                Id             = r.RecipeId,
+                RecipeName     = r.RecipeName,
+                RecipeCategory = r.RecipeCategory!,
+                UserName       = r.User.UserName
             })
             .ToListAsync();
-        var response = new RecipesByPageDtoResponse
+
+        return new RecipesByPageDtoResponse
         {
-            Page = page,
-            PageSize = pageSize,
+            Page       = page,
+            PageSize   = pageSize,
             TotalCount = totalCount,
-            Recipes = recipes
+            Recipes    = recipes
         };
-        return response;
     }
 
     public async Task<RecipeDetailsDtoResponse?> GetByIdAsync(int id)
     {
-        var recipe = await _context.Recipes
+        return await _context.Recipes
             .Where(r => r.RecipeId == id)
             .Select(r => new RecipeDetailsDtoResponse
             {
-                RecipeId = r.RecipeId,
-                RecipeName = r.RecipeName,
+                RecipeId          = r.RecipeId,
+                RecipeName        = r.RecipeName,
                 RecipeDescription = r.RecipeDescription,
-                RecipeCategory = r.RecipeCategory,
-                UserId = r.UserId,
-                UserName = r.User.UserName,
-                InstructionSteps = r.InstructionSteps
+                RecipeCategory    = r.RecipeCategory,
+                UserId            = r.UserId,
+                UserName          = r.User.UserName,
+                InstructionSteps  = r.InstructionSteps
                     .OrderBy(s => s.StepNumber)
                     .Select(s => new InstructionStepDto
                     {
-                        StepId = s.StepId,
+                        StepId     = s.StepId,
                         StepNumber = s.StepNumber,
-                        StepText = s.StepText
+                        StepText   = s.StepText
                     }).ToList(),
-
                 Ingredients = r.Ingredients
                     .Select(i => new RecipeIngredientDto
                     {
-                        ProductId = i.ProductId,
+                        ProductId   = i.ProductId,
                         ProductName = i.Product.ProductNamn,
-                        Quantity = i.Quantity,
-                        Unit = i.Unit
+                        Quantity    = i.Quantity,
+                        Unit        = i.Unit
+                    }).ToList(),
+                Comments = r.Comments 
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Select(c => new CommentDto
+                    {
+                        CommentId = c.CommentId,
+                        Text      = c.Text,
+                        UserName  = c.User.UserName,
+                        CreatedAt = c.CreatedAt
                     }).ToList()
             })
             .FirstOrDefaultAsync();
-
-        return recipe;
     }
 
-    public async Task<int> CreateRecipeAsync(CreateRecipeDtoRequest dto)
+    public async Task<int> CreateRecipeAsync(CreateRecipeDtoRequest dto, int userId)
     {
         await using var trans = await _context.Database.BeginTransactionAsync();
 
         var recipe = new Recipe
         {
-            RecipeName = dto.RecipeName!,
+            RecipeName        = dto.RecipeName!,
             RecipeDescription = dto.RecipeDescription,
-            RecipeCategory = dto.RecipeCategory
+            RecipeCategory    = dto.RecipeCategory,
+            UserId            = userId
         };
 
         _context.Recipes.Add(recipe);
@@ -112,12 +121,11 @@ public class RecipeRepository : IRecipeRepository
             var steps = dto.Steps
                 .Select((s, index) => new InstructionStep
                 {
-                    RecipeId = recipe.RecipeId,
-                    StepText = s.StepText.Trim(),
+                    RecipeId   = recipe.RecipeId,
+                    StepText   = s.StepText.Trim(),
                     StepNumber = index + 1
                 })
                 .ToList();
-
             _context.InstructionSteps.AddRange(steps);
         }
 
@@ -125,12 +133,11 @@ public class RecipeRepository : IRecipeRepository
         {
             var ingredients = dto.Ingredients.Select(i => new RecipeIngredient
             {
-                RecipeId = recipe.RecipeId,
+                RecipeId  = recipe.RecipeId,
                 ProductId = i.ProductId,
-                Quantity = i.Quantity,
-                Unit = i.Unit
+                Quantity  = i.Quantity,
+                Unit      = i.Unit
             });
-
             _context.RecipeIngredients.AddRange(ingredients);
         }
 
@@ -139,27 +146,29 @@ public class RecipeRepository : IRecipeRepository
         return recipe.RecipeId;
     }
 
-    public async Task<bool> UpdateRecipeAsync(int id, UpdateRecipeDtoRequest dto)
+    public async Task<bool> UpdateRecipeAsync(int id, UpdateRecipeDtoRequest dto, int userId)
     {
         var recipe = await _context.Recipes
             .Include(r => r.InstructionSteps)
             .Include(r => r.Ingredients)
             .FirstOrDefaultAsync(r => r.RecipeId == id);
 
-        if (recipe is null)
-            return false;
+        if (recipe is null) return false;
 
-        recipe.RecipeName = dto.RecipeName!;
+        // Ownership check — only the creator can update
+        if (recipe.UserId != userId) return false;
+
+        recipe.RecipeName        = dto.RecipeName!;
         recipe.RecipeDescription = dto.RecipeDescription;
-        recipe.RecipeCategory = dto.RecipeCategory;
+        recipe.RecipeCategory    = dto.RecipeCategory;
 
         _context.InstructionSteps.RemoveRange(recipe.InstructionSteps);
         if (dto.Steps is { Count: > 0 })
         {
             var newSteps = dto.Steps.Select((s, index) => new InstructionStep
             {
-                RecipeId = recipe.RecipeId,
-                StepText = s.StepText!,
+                RecipeId   = recipe.RecipeId,
+                StepText   = s.StepText!,
                 StepNumber = index + 1
             });
             await _context.InstructionSteps.AddRangeAsync(newSteps);
@@ -170,10 +179,10 @@ public class RecipeRepository : IRecipeRepository
         {
             var newIngredients = dto.Ingredients.Select(i => new RecipeIngredient
             {
-                RecipeId = recipe.RecipeId,
+                RecipeId  = recipe.RecipeId,
                 ProductId = i.ProductId,
-                Quantity = i.Quantity,
-                Unit = i.Unit!
+                Quantity  = i.Quantity,
+                Unit      = i.Unit!
             });
             await _context.RecipeIngredients.AddRangeAsync(newIngredients);
         }
@@ -182,12 +191,15 @@ public class RecipeRepository : IRecipeRepository
         return true;
     }
 
-
-    public async Task<bool> DeleteRecipeAsync(int id)
+    public async Task<bool> DeleteRecipeAsync(int id, int userId)
     {
-        var recipeToDelete = await _context.Recipes.FirstOrDefaultAsync(r => r.RecipeId == id);
-        if (recipeToDelete == null) return false;
-        _context.Recipes.Remove(recipeToDelete);
+        var recipe = await _context.Recipes.FirstOrDefaultAsync(r => r.RecipeId == id);
+        if (recipe is null) return false;
+
+        // Ownership check — only the creator can delete
+        if (recipe.UserId != userId) return false;
+
+        _context.Recipes.Remove(recipe);
         return await _context.SaveChangesAsync() > 0;
     }
 

@@ -53,19 +53,19 @@ public class RecipeHub : IRecipeHub
         return await _recipeService.GetByIdAsync(id);
     }
 
-    public async Task<ServiceResponse<RecipeDetailsDtoResponse>> CreateRecipeAsync(CreateRecipeDtoRequest dto)
+    public async Task<ServiceResponse<RecipeDetailsDtoResponse>> CreateRecipeAsync(CreateRecipeDtoRequest dto, int userId)
     {
-        return await _recipeService.CreateRecipeAsync(dto);
+        return await _recipeService.CreateRecipeAsync(dto, userId);
     }
 
-    public async Task<ServiceResponse<RecipeDetailsDtoResponse>> UpdateRecipeAsync(int id, UpdateRecipeDtoRequest dto)
+    public async Task<ServiceResponse<RecipeDetailsDtoResponse>> UpdateRecipeAsync(int id, UpdateRecipeDtoRequest dto, int userId)
     {
-        return await _recipeService.UpdateRecipeAsync(id, dto);
+        return await _recipeService.UpdateRecipeAsync(id, dto, userId);
     }
 
-    public async Task<ServiceResponse<bool>> DeleteRecipeAsync(int id)
+    public async Task<ServiceResponse<bool>> DeleteRecipeAsync(int id, int userId)
     {
-        return await _recipeService.DeleteRecipeAsync(id);
+        return await _recipeService.DeleteRecipeAsync(id, userId);
     }
 
 }

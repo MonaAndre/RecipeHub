@@ -22,7 +22,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapProductEndpoints();
 app.MapRecipeEndpoints();
+app.MapAuthEndpoints();
 
 app.Run();

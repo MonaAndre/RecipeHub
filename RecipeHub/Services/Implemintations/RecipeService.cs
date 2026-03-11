@@ -73,7 +73,7 @@ public class RecipeService : IRecipeService
         }
     }
 
-    public async Task<ServiceResponse<RecipeDetailsDtoResponse>> CreateRecipeAsync(CreateRecipeDtoRequest dto)
+    public async Task<ServiceResponse<RecipeDetailsDtoResponse>> CreateRecipeAsync(CreateRecipeDtoRequest dto, int userId)
     {
         if (string.IsNullOrWhiteSpace(dto.RecipeName))
             return ServiceResponse<RecipeDetailsDtoResponse>.ErrorResponse("RecipeName is required", 400);
@@ -111,7 +111,7 @@ public class RecipeService : IRecipeService
 
         try
         {
-            var id = await _recipeRepository.CreateRecipeAsync(dto);
+            var id = await _recipeRepository.CreateRecipeAsync(dto, userId);
             var created = await _recipeRepository.GetByIdAsync(id);
 
             return created is null
@@ -124,7 +124,7 @@ public class RecipeService : IRecipeService
         }
     }
 
-    public async Task<ServiceResponse<RecipeDetailsDtoResponse>> UpdateRecipeAsync(int id, UpdateRecipeDtoRequest dto)
+    public async Task<ServiceResponse<RecipeDetailsDtoResponse>> UpdateRecipeAsync(int id, UpdateRecipeDtoRequest dto, int userId)
     {
         if (id <= 0)
             return ServiceResponse<RecipeDetailsDtoResponse>.ErrorResponse("Id must be > 0", 400);
@@ -166,7 +166,7 @@ public class RecipeService : IRecipeService
 
         try
         {
-            var updated = await _recipeRepository.UpdateRecipeAsync(id, dto);
+            var updated = await _recipeRepository.UpdateRecipeAsync(id, dto, userId);
             if (!updated)
                 return ServiceResponse<RecipeDetailsDtoResponse>.ErrorResponse("Recipe not found", 404);
 
@@ -179,7 +179,7 @@ public class RecipeService : IRecipeService
         }
     }
 
-    public async Task<ServiceResponse<bool>> DeleteRecipeAsync(int id)
+    public async Task<ServiceResponse<bool>> DeleteRecipeAsync(int id, int userId)
     {
         if (id <= 0)
             return ServiceResponse<bool>.ErrorResponse("Id must be > 0");
@@ -191,7 +191,7 @@ public class RecipeService : IRecipeService
                 return ServiceResponse<bool>.ErrorResponse("Recipe not found", 404);
             }
 
-            var isDeleted = await _recipeRepository.DeleteRecipeAsync(id);
+            var isDeleted = await _recipeRepository.DeleteRecipeAsync(id, userId);
             if (!isDeleted)
             {
                 return ServiceResponse<bool>.ErrorResponse("Failed to delete recipe", 404);

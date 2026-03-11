@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using RecipeHub.Common;
 using RecipeHub.Domain;
 using RecipeHub.DTOs.RecipeDTOs;
-using RecipeHub.Repositories.Interfaces;
 
 namespace RecipeHub.Endpoints;
 
@@ -17,6 +17,7 @@ public static class RecipeEndpoints
             var result = await recipeHub.GetAllRecipesAsync();
             return result.ToHttpResult();
         });
+
         app.MapGet("/paged-recipes", async (IRecipeHub recipeHub, [AsParameters] RecipesByPageDtoRequest dto) =>
         {
             var response = await recipeHub.GetRecipesAsync(dto);
@@ -28,7 +29,7 @@ public static class RecipeEndpoints
             if (dto is null)
                 return Results.BadRequest("Missing query parameters");
 
-            if (dto?.Page is null || dto?.PageSize is null)
+            if (dto.Page is null || dto.PageSize is null)
                 return Results.BadRequest("Query parameters 'page' and 'pageSize' are required.");
 
             if (dto.Page < 1)
@@ -42,6 +43,7 @@ public static class RecipeEndpoints
 
             return await next(context);
         });
+
         group.MapGet("/{id:int}", async (IRecipeHub recipeHub, int id) =>
         {
             var result = await recipeHub.GetRecipeByIdAsync(id);
@@ -49,35 +51,44 @@ public static class RecipeEndpoints
         }).AddEndpointFilter(async (context, next) =>
         {
             var id = context.Arguments.OfType<int>().First();
-
             if (id <= 0)
-            {
                 return Results.BadRequest("Id must be greater than 0");
-            }
-
             return await next(context);
         });
+
+        // ── Kräver inloggning — userId hämtas från JWT-token ──
+
         group.MapPost("/create-recipe", async (
             CreateRecipeDtoRequest request,
+            ClaimsPrincipal user,
             IRecipeHub recipeHub) =>
         {
-            var result = await recipeHub.CreateRecipeAsync(request);
+            var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await recipeHub.CreateRecipeAsync(request, userId);
             return result.ToHttpResult();
-        });
-        group.MapPut("/update-recipe/{id}", async (int id,
+        }).RequireAuthorization();
+
+        group.MapPut("/update-recipe/{id}", async (
+            int id,
             UpdateRecipeDtoRequest request,
+            ClaimsPrincipal user,
             IRecipeHub recipeHub) =>
         {
-            var result = await recipeHub.UpdateRecipeAsync(id, request);
+            var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await recipeHub.UpdateRecipeAsync(id, request, userId);
             return result.ToHttpResult();
-        });
+        }).RequireAuthorization();
+
         group.MapDelete("/{id:int}", async (
             int id,
+            ClaimsPrincipal user,
             IRecipeHub recipeHub) =>
         {
-            var result = await recipeHub.DeleteRecipeAsync(id);
+            var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await recipeHub.DeleteRecipeAsync(id, userId);
             return result.ToHttpResult();
-        });
+        }).RequireAuthorization();
+
         return group;
     }
 }
