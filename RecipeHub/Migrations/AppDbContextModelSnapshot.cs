@@ -153,18 +153,11 @@ namespace RecipeHub.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("user_id");
 
-                    b.Property<int?>("UserId1")
-                        .HasColumnType("integer")
-                        .HasColumnName("user_id1");
-
                     b.HasKey("RecipeId")
                         .HasName("pk_recipes");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_recipes_user_id");
-
-                    b.HasIndex("UserId1")
-                        .HasDatabaseName("ix_recipes_user_id1");
 
                     b.ToTable("recipes", (string)null);
                 });
@@ -301,16 +294,11 @@ namespace RecipeHub.Migrations
             modelBuilder.Entity("RecipeHub.Models.Recipe", b =>
                 {
                     b.HasOne("RecipeHub.Models.User", "User")
-                        .WithMany()
+                        .WithMany("Recipes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_recipes_users_user_id");
-
-                    b.HasOne("RecipeHub.Models.User", null)
-                        .WithMany("Recipes")
-                        .HasForeignKey("UserId1")
-                        .HasConstraintName("fk_recipes_users_user_id1");
 
                     b.Navigation("User");
                 });

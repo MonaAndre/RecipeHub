@@ -46,7 +46,7 @@ public class AppDbContext : DbContext
             recipe.Property(r => r.RecipeDescription).HasMaxLength(1000);
             recipe.Property(r => r.RecipeCategory).HasMaxLength(100);
             recipe.HasOne(x => x.User)
-                .WithMany()
+                .WithMany(u => u.Recipes)
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

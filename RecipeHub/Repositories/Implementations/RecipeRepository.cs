@@ -68,6 +68,8 @@ public class RecipeRepository : IRecipeRepository
                 RecipeName = r.RecipeName,
                 RecipeDescription = r.RecipeDescription,
                 RecipeCategory = r.RecipeCategory,
+                UserId = r.UserId,
+                UserName = r.User.UserName,
                 InstructionSteps = r.InstructionSteps
                     .OrderBy(s => s.StepNumber)
                     .Select(s => new InstructionStepDto
