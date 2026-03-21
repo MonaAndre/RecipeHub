@@ -1,8 +1,7 @@
 using RecipeHub.Common;
+using RecipeHub.DTOs.CommentDTOs;
 using RecipeHub.DTOs.ProductDTOs;
 using RecipeHub.DTOs.RecipeDTOs;
-using RecipeHub.Models;
-using RecipeHub.Repositories.Interfaces;
 using RecipeHub.Services.Interfaces;
 
 namespace RecipeHub.Domain;
@@ -10,62 +9,58 @@ namespace RecipeHub.Domain;
 public class RecipeHub : IRecipeHub
 {
     private readonly IProductService _productService;
-    private readonly IRecipeService _recipeService;
+    private readonly IRecipeService  _recipeService;
+    private readonly ICommentService _commentService;
 
-    public RecipeHub(IProductService productService, IRecipeService recipeService)
+    public RecipeHub(IProductService productService, IRecipeService recipeService, ICommentService commentService)
     {
         _productService = productService;
-        _recipeService = recipeService;
+        _recipeService  = recipeService;
+        _commentService = commentService;
     }
 
+    // Products
     public async Task<ServiceResponse<List<ProductDtoResponse>>> GetAllProductsAsync()
-    {
-        return await _productService.GetAllProductsAsync();
-    }
+        => await _productService.GetAllProductsAsync();
 
     public async Task<ServiceResponse<ProductDtoResponse>> CreateProductAsync(ProductDtoRequest dto)
-    {
-        return await _productService.CreateProductAsync(dto);
-    }
+        => await _productService.CreateProductAsync(dto);
 
     public async Task<ServiceResponse<ProductDtoResponse>> UpdateProductAsync(int id, ProductDtoRequest dto)
-    {
-        return await _productService.UpdateProductAsync(id, dto);
-    }
+        => await _productService.UpdateProductAsync(id, dto);
 
     public async Task<ServiceResponse<bool>> DeleteProductAsync(int id)
-    {
-        return await _productService.DeleteProductAsync(id);
-    }
+        => await _productService.DeleteProductAsync(id);
 
+    // Recipes
     public async Task<ServiceResponse<List<RecipeDtoResponse>>> GetAllRecipesAsync()
-    {
-        return await _recipeService.GetAllRecipesAsync();
-    }
+        => await _recipeService.GetAllRecipesAsync();
 
     public async Task<ServiceResponse<RecipesByPageDtoResponse>> GetRecipesAsync(RecipesByPageDtoRequest request)
-    {
-        return await _recipeService.GetRecipesAsync(request);
-    }
+        => await _recipeService.GetRecipesAsync(request);
 
     public async Task<ServiceResponse<RecipeDetailsDtoResponse>> GetRecipeByIdAsync(int id)
-    {
-        return await _recipeService.GetByIdAsync(id);
-    }
+        => await _recipeService.GetByIdAsync(id);
 
     public async Task<ServiceResponse<RecipeDetailsDtoResponse>> CreateRecipeAsync(CreateRecipeDtoRequest dto, int userId)
-    {
-        return await _recipeService.CreateRecipeAsync(dto, userId);
-    }
+        => await _recipeService.CreateRecipeAsync(dto, userId);
 
     public async Task<ServiceResponse<RecipeDetailsDtoResponse>> UpdateRecipeAsync(int id, UpdateRecipeDtoRequest dto, int userId)
-    {
-        return await _recipeService.UpdateRecipeAsync(id, dto, userId);
-    }
+        => await _recipeService.UpdateRecipeAsync(id, dto, userId);
 
     public async Task<ServiceResponse<bool>> DeleteRecipeAsync(int id, int userId)
-    {
-        return await _recipeService.DeleteRecipeAsync(id, userId);
-    }
+        => await _recipeService.DeleteRecipeAsync(id, userId);
 
+    // Comments
+    public async Task<ServiceResponse<List<CommentDtoResponse>>> GetCommentsByRecipeIdAsync(int recipeId)
+        => await _commentService.GetByRecipeIdAsync(recipeId);
+
+    public async Task<ServiceResponse<CommentDtoResponse>> CreateCommentAsync(int recipeId, int userId, CreateCommentDtoRequest dto)
+        => await _commentService.CreateAsync(recipeId, userId, dto);
+
+    public async Task<ServiceResponse<CommentDtoResponse>> UpdateCommentAsync(int commentId, int userId, UpdateCommentDtoRequest dto)
+        => await _commentService.UpdateAsync(commentId, userId, dto);
+
+    public async Task<ServiceResponse<bool>> DeleteCommentAsync(int commentId, int userId)
+        => await _commentService.DeleteAsync(commentId, userId);
 }

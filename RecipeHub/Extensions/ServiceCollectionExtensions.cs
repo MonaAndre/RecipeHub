@@ -9,6 +9,7 @@ using RecipeHub.Repositories.Interfaces;
 using RecipeHub.Services.Implemintations;
 using RecipeHub.Services.Interfaces;
 
+
 namespace RecipeHub.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -25,6 +26,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRecipeRepository, RecipeRepository>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IRecipeService, RecipeService>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IRecipeHub, Domain.RecipeHub>();
       
         var jwtKey = configuration["Jwt:Key"]!;

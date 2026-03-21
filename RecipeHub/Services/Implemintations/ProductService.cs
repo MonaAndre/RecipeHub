@@ -39,7 +39,7 @@ public class ProductService : IProductService
             }
 
             var result = await _productRepository.CreateProductAsync(dto);
-            return ServiceResponse<ProductDtoResponse>.SuccessResponse(result, "Product created");
+            return ServiceResponse<ProductDtoResponse>.SuccessResponse(result, "Product created", 201);
         }
         catch (Exception e)
         {
