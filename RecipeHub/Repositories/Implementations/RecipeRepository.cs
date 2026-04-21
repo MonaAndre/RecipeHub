@@ -36,6 +36,9 @@ public class RecipeRepository : IRecipeRepository
         if (!string.IsNullOrWhiteSpace(request.Search))
             query = query.Where(r => r.RecipeName.Contains(request.Search));
 
+        if (!string.IsNullOrWhiteSpace(request.Category))
+            query = query.Where(r => r.RecipeCategory == request.Category);
+
         var totalCount = await query.CountAsync();
 
         var recipes = await query
