@@ -4,3 +4,9 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 **/secrets.json
+node_modules/
+.DS_Store
+frontend/.playwright
+.idea/
+.vs/
+*.user
